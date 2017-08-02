@@ -13,7 +13,7 @@ disks = []
 arrays = []
 check_frequency = 600
 
-disk_healthy = Gauge('disk_health', 'SMART Healthcheck status', ['device'])
+disk_healthy = Gauge('disk_healthy', 'SMART Healthcheck status', ['device'])
 disk_reallocated_sector_count = Gauge('disk_reallocated_sector_count', 'Reallocated sectors', ['device'])
 disk_temperature = Gauge('disk_temperature', 'Drive temperature (if available)', ['device'])
 disk_reallocated_event_count = Gauge('disk_reallocated_event_count', 'Reallocated Event Count (if available)', ['device'])

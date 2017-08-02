@@ -1,18 +1,19 @@
 #!/usr/bin/env python
 
-from prometheus_client import start_http_server, Gauge
 import os
 import re
 import time
+import logger
 from subprocess import Popen, PIPE
+from prometheus_client import start_http_server, Gauge
 
 smartctl = "/usr/sbin/smartctl"
 disks = []
-healthy = Gauge('drive_health', 'SMART Healthcheck status', ['device'])
-reallocated_sector_count = Gauge('reallocated_sector_count', 'Reallocated sectors', ['device'])
-drive_temperature = Gauge('drive_temperature', 'Drive temp if availables', ['device'])
-reallocated_event_count = Gauge('reallocated_event_count', 'Reallocated Event Count', ['device'])
-offline_uncorrectable = Gauge('offline_uncorrectable', 'Offline uncorrectable count', ['device'])
+disk_healthy = Gauge('drive_health', 'SMART Healthcheck status', ['device'])
+disk_reallocated_sector_count = Gauge('reallocated_sector_count', 'Reallocated sectors', ['device'])
+disk_temperature = Gauge('drive_temperature', 'Drive temp if availables', ['device'])
+disk_reallocated_event_count = Gauge('reallocated_event_count', 'Reallocated Event Count', ['device'])
+disk_offline_uncorrectable = Gauge('offline_uncorrectable', 'Offline uncorrectable count', ['device'])
 
 def sanity_checks():
 	if os.path.isfile('/usr/sbin/smartctl') == False:
@@ -43,11 +44,11 @@ def parse_output(disk,output):
 		# check overall status
 		if "overall-health self-assessment test result" in line:
 			if "PASSED" in line:
-				healthy.labels(disk).set(1)
+				disk_healthy.labels(disk).set(1)
 			elif "OK" in line:
-				healthy.labels(disk).set(1)
+				disk_healthy.labels(disk).set(1)
 			else:
-				healthy.labels(disk).set(0)
+				disk_healthy.labels(disk).set(0)
 
 		# now lets parse the stats
 		parts = line.split()
@@ -56,23 +57,23 @@ def parse_output(disk,output):
 			if parts[0] == "5" and \
 				parts[1] == "Reallocated_Sector_Ct":
 				rsc = int(parts[9])
-				reallocated_sector_count.labels(disk).set(rsc)
+				disk_reallocated_sector_count.labels(disk).set(rsc)
 			elif parts[0] == "190":
 				temperature = int(parts[9])
-				drive_temperature.labels(disk).set(temperature)
+				disk_temperature.labels(disk).set(temperature)
 			elif parts[0] == "196":
 				rec = int(parts[9])
-				reallocated_event_count.labels(disk).set(rec)
+				disk_reallocated_event_count.labels(disk).set(rec)
 			elif parts[0] == "198":
 				ou = int(parts[9])
-				offline_uncorrectable.labels(disk).set(ou)
+				disk_offline_uncorrectable.labels(disk).set(ou)
 
 def run_things():
 	sanity_checks()
 	get_physical_devices()
 
 	if disks < 1:
-		print "No disks found, exit!"
+		print "No physical disks found, exit!"
 
 	for disk in disks:
 		parse_output(disk,run_smartctl_check(disk))

@@ -70,6 +70,10 @@ def parse_output(disk,output):
 def run_things():
 	sanity_checks()
 	get_physical_devices()
+
+	if disks < 1:
+		print "No disks found, exit!"
+
 	for disk in disks:
 		parse_output(disk,run_smartctl_check(disk))
 	time.sleep(600)

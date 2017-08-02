@@ -3,17 +3,16 @@
 import os
 import re
 import time
-import logging
 from subprocess import Popen, PIPE
 from prometheus_client import start_http_server, Gauge
 
 smartctl = "/usr/sbin/smartctl"
 disks = []
-disk_healthy = Gauge('drive_health', 'SMART Healthcheck status', ['device'])
-disk_reallocated_sector_count = Gauge('reallocated_sector_count', 'Reallocated sectors', ['device'])
-disk_temperature = Gauge('drive_temperature', 'Drive temp if availables', ['device'])
-disk_reallocated_event_count = Gauge('reallocated_event_count', 'Reallocated Event Count', ['device'])
-disk_offline_uncorrectable = Gauge('offline_uncorrectable', 'Offline uncorrectable count', ['device'])
+disk_healthy = Gauge('disk_health', 'SMART Healthcheck status', ['device'])
+disk_reallocated_sector_count = Gauge('disk_reallocated_sector_count', 'Reallocated sectors', ['device'])
+disk_temperature = Gauge('disk_temperature', 'Drive temp if availables', ['device'])
+disk_reallocated_event_count = Gauge('disk_reallocated_event_count', 'Reallocated Event Count', ['device'])
+disk_offline_uncorrectable = Gauge('disk_offline_uncorrectable', 'Offline uncorrectable count', ['device'])
 
 def sanity_checks():
 	if os.path.isfile('/usr/sbin/smartctl') == False:
@@ -73,7 +72,7 @@ def run_things():
 	get_physical_devices()
 
 	if disks < 1:
-		print "No physical disks found, exit!"
+		print "No physical disks found."
 
 	for disk in disks:
 		parse_output(disk,run_smartctl_check(disk))
@@ -82,6 +81,7 @@ def run_things():
 
 if __name__ == "__main__":
 	start_http_server(9009)
+	print "Started metrics endpoint server"
 	while True:
 		run_things()
 

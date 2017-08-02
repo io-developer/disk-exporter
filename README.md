@@ -3,8 +3,7 @@
 Disk-Exporter exports Prometheus metrics about the health of your system's
 physical disks and software RAID arrays. It uses smartctl and mdadm to do this.
 
-This was written for a specific environment and therefore makes some assumptions
-about your server.
+This was written for a specific environment and therefore makes some assumptions.
 
 ## Disk metrics
 
@@ -14,12 +13,18 @@ for adding more if required, with relative ease.
 
 Some may not be available depending on your drive.
 
-* Overall disk health (Smartctl self-check "Passed" or not) Disk reallocated
-* sector count  Disk temperature Disk reallocated event count  Disk offline
-* uncorrectable
+* Overall disk health (Smartctl self-check "Passed" or not) 
+* Disk reallocated sector count  
+* Disk temperature 
+* Disk reallocated event count  
+* Disk offline uncorrectable count
 
 ## RAID metrics
 
 This simply uses mdadm to check the health of each array it finds.
 
 * "Clean" and "OK" are the only acceptable array states.
+
+## Installation
+
+For ease of deployment, a basic salt state and systemd unit are included.

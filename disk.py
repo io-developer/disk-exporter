@@ -1,34 +1,44 @@
 #!/usr/bin/env python
 
+# Prometheus disk exporter
+# Exports smartctl and mdadm health statistics
+# Jimmy Crutchfield 2017
+
 import os
 import re
 import time
 from subprocess import Popen, PIPE
 from prometheus_client import start_http_server, Gauge
 
+# Paths to binaries
 smartctl = "/usr/sbin/smartctl"
 mdadm = "/sbin/mdadm"
 
 disks = []
 arrays = []
+
+# How often to re-poll smartctl and mdadm
 check_frequency = 600
 
+# Metrics to export
 disk_healthy = Gauge('disk_healthy', 'SMART Healthcheck status', ['device'])
 disk_reallocated_sector_count = Gauge('disk_reallocated_sector_count', 'Reallocated sectors', ['device'])
 disk_temperature = Gauge('disk_temperature', 'Drive temperature (if available)', ['device'])
 disk_reallocated_event_count = Gauge('disk_reallocated_event_count', 'Reallocated Event Count (if available)', ['device'])
 disk_offline_uncorrectable = Gauge('disk_offline_uncorrectable', 'Offline uncorrectable count (if available)', ['device'])
-
 array_healthy = Gauge('array_healthy', 'RAID Array Healthcheck status', ['device'])
 
-# check we have smartctl
+# Check we have smartctl
 def sanity_checks():
 	if os.path.isfile(smartctl) == False:
-		print "Smartctl not found, this thing won't work!"
+		print "Smartctl not found, Disk checks will not work"
 		exit(1)
+	if os.path.isfile(smartctl) == False:
+		# Don't exit, this isn't a fatal condition
+		print "Mdadm not found, RAID checks will not work."
 	return
 
-# returns a list of disks
+# Returns a list of disks
 def get_physical_devices():
 	p1 = Popen(["lsblk", "-d"], stdout=PIPE)
 	output =  p1.communicate()[0]
@@ -39,14 +49,14 @@ def get_physical_devices():
 			disks.append(is_physical_disk.group(0).strip())
 	return disks
 
-# run smartctl and return output
+# Run smartctl and return output
 def run_smartctl_check(disk):
 	disk_to_check = "/dev/" + str(disk)
 	proc = Popen(["smartctl", "-a", disk_to_check], stdout=PIPE)
 	output =  proc.communicate()[0]
 	return output
 
-# parse the output and extract metrics
+# Parse the output and extract metrics
 def parse_output(disk,output):
 	lines = output.split('\n')
 	for line in lines:
@@ -59,10 +69,10 @@ def parse_output(disk,output):
 			else:
 				disk_healthy.labels(disk).set(0)
 
-		# now lets parse the stats
+		# Parse stats
 		parts = line.split()
 		if len(parts) > 0:
-			# first, reallocated sectors, double check value ID
+			# With reallocated sector count, double check value ID
 			if parts[0] == "5" and \
 				parts[1] == "Reallocated_Sector_Ct":
 				rsc = int(parts[9])
@@ -77,6 +87,7 @@ def parse_output(disk,output):
 				ou = int(parts[9])
 				disk_offline_uncorrectable.labels(disk).set(ou)
 
+# Get a list of RAID arrays seen by mdadm
 def get_arrays():
 	mdadm_scan = os.popen("/sbin/mdadm --detail --scan").readlines()
 	for line in mdadm_scan:
@@ -88,6 +99,7 @@ def get_arrays():
 		else:
 			return arrays
 
+# Check their health; "clean" and "active" are good
 def run_mdadm_check(array):
 	mdadm_output = os.popen("/sbin/mdadm --detail %s" % (array)).readlines()
 
@@ -101,7 +113,7 @@ def run_mdadm_check(array):
                 else:
                 	array_healthy.labels(array).set(1)
 					
-# event loop does things
+# Main runner for the script
 def event_loop():
 	sanity_checks()
 	get_physical_devices()

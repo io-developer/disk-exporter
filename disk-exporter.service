@@ -1,0 +1,11 @@
+[Unit]
+Description=Prometheus Disk Exporter
+
+[Service]
+User=root
+ExecStart=/usr/bin/python /usr/local/bin/disk-exporter
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=default.target

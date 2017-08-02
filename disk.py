@@ -3,7 +3,7 @@
 import os
 import re
 import time
-import logger
+import logging
 from subprocess import Popen, PIPE
 from prometheus_client import start_http_server, Gauge
 

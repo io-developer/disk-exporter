@@ -108,7 +108,7 @@ def run_mdadm_check(array):
                 state = line.split(":")[-1][1:-1]
                 state = state.strip()
                 re_clean = re.compile('^clean(, no-errors)?$')
-                if not re_clean.match(state) and state != "active":
+                if not re_clean.match(state) and state != "active" and "checking" not in state:
                 	array_healthy.labels(array).set(0)
                 else:
                 	array_healthy.labels(array).set(1)

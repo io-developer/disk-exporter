@@ -1,7 +1,7 @@
 # Disk-Exporter
 
 Disk-Exporter exports Prometheus metrics about the health of your system's
-physical disks and software RAID arrays. It uses smartctl and mdadm to do this.
+physical disks. It uses smartctl to do this.
 
 This was written for a specific environment and therefore makes some assumptions.
 
@@ -20,11 +20,21 @@ Some may not be available depending on your drive.
 * Disk offline uncorrectable count
 
 ## RAID metrics
-
-This simply uses mdadm to check the health of each array it finds.
-
-* "Clean" and "OK" are the only acceptable array states.
+Previous code was removed. Use **prom/node-exporter** for this purpose (node_md_* metrics)
 
 ## Installation
 
-For ease of deployment, a basic salt state and systemd unit are included.
+Docker hub - https://hub.docker.com/r/iodeveloper/prom_diskexporter
+
+Example for **docker-compose.yml**
+```yaml
+version: '3.4'
+services:
+  diskexporter:
+    image: iodeveloper/prom_diskexporter:latest
+    user: root
+    privileged: true
+    restart: unless-stopped
+    ports:
+      - "9009:9009"
+```

@@ -21,7 +21,7 @@ Some may not be available depending on your drive.
 
 ## Installation
 
-Docker hub - https://hub.docker.com/r/iodeveloper/prom_diskexporter
+Docker hub - https://hub.docker.com/r/kruseltier/prom_diskexporter
 
 Example for **docker-compose.yml**
 ```yaml

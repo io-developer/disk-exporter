@@ -19,9 +19,6 @@ Some may not be available depending on your drive.
 * Disk reallocated event count  
 * Disk offline uncorrectable count
 
-## RAID metrics
-Previous code was removed. Use **prom/node-exporter** for this purpose (node_md_* metrics)
-
 ## Installation
 
 Docker hub - https://hub.docker.com/r/iodeveloper/prom_diskexporter

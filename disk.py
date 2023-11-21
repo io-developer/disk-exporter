@@ -29,7 +29,7 @@ disk_offline_uncorrectable = Gauge('disk_offline_uncorrectable', 'Offline uncorr
 # Check we have smartctl
 def sanity_checks():
 	if os.path.isfile(smartctl) == False:
-		print "Smartctl not found, Disk checks will not work"
+		print("Smartctl not found, Disk checks will not work")
 		exit(1)
 	return
 
@@ -38,6 +38,7 @@ def sanity_checks():
 def get_physical_devices():
 	p1 = Popen(["lsblk", "-d"], stdout=PIPE)
 	output =  p1.communicate()[0]
+	output = output.decode()
 	lines = output.split('\n')
 	for line in lines:
 		is_physical_disk = re.match('^sd([a-z])\s', line)
@@ -56,6 +57,7 @@ def run_smartctl_check(disk):
 
 # Parse the output and extract metrics
 def parse_output(disk,output):
+	output = output.decode()
 	lines = output.split('\n')
 	for line in lines:
 		# check overall status
@@ -91,8 +93,8 @@ def event_loop():
 	sanity_checks()
 	get_physical_devices()
 
-	if disks < 1:
-		print "No physical disks found. No disk metrics to export."
+	if len(disks) < 1:
+		print("No physical disks found. No disk metrics to export.")
 		exit(1)
 
 	for disk in disks:
@@ -103,7 +105,7 @@ def event_loop():
 
 if __name__ == "__main__":
 	start_http_server(9009)
-	print "Started metrics server."
+	print("Started metrics server.")
 	while True:
 		event_loop()
 

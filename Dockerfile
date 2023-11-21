@@ -1,4 +1,4 @@
-FROM python:2.7-stretch
+FROM python:bookworm
 
 RUN apt-get update \
     && apt-get install smartmontools -y --no-install-recommends \
